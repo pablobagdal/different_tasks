@@ -1,0 +1,56 @@
+// Sample code to perform I/O:
+#include <stdio.h>
+void casetypefunc();
+void clockwisefunc(int N,int K,int *A);
+void printarr(int N,int *A);
+int main(){
+    int num;
+
+    scanf("%d", &num);                          // Reading input from STDIN
+    for(int i = 0; i < num; i++){
+        casetypefunc();                         //iterating test cases
+    }
+    
+    //printf("Input number is %d.\n", num);       // Writing output to STDOUT
+}
+void casetypefunc(){
+    int N,K;
+    scanf("%d", &N);
+    scanf("%d", &K);
+    //printf("N and K are %d and %d", N, K);
+    K = K % N;                                  //cut full laps
+    //printf("New K is %d\n", K);
+    int *A = new int[N];                        //dynamic array of N element
+    for(int i = 0; i < N; i++)
+        scanf("%d", &A[i]);
+    clockwisefunc(N,K,A);
+    delete[]A;                                  //clean dynamic memory
+}
+void clockwisefunc(int N,int K,int *A){
+    int *temp = new int[K];                     //array for last K el. of A
+    for(int i = 0; i < K; i++){
+        temp[i] = A[N-K+i];                     //copy last K el. to temp
+        //printf("Temp %d\n", temp[i]);
+    }
+    for(int i = 0; i < N-K; i++){
+        A[N-1-i] = A[N-1-K-i];
+    }
+    for(int i = 0; i < K; i++){
+        A[i] = temp[i];
+    }
+    delete[]temp;                               //clean dynamic memory
+    printarr(N,A);
+}
+void printarr(int N,int *A){
+    for(int i = 0; i < N; i++){
+        printf("%d ", A[i]);
+    }
+    printf("\n");
+}
+// Warning: Printing unwanted or ill-formatted data to output will cause the test cases to fail
+
+
+// Write your code here
+
+
+
