@@ -40,5 +40,64 @@
    которые кодируют / декодируют содержимое файла по пути in_path и сохраняют результат в файле out_path.
 
    Программу можно протестировать, сжав и распаковав файл и сравнив результат с исходным файлом.
+
+
+  POPIS ZNAKU
+  'r' otevreno pro cteni
+  'w' otevreno pro zapis, existujici soubor je prepsan
+  'a' otevreno pro zapis, pokud soubor existuje, zapisujeme
+  na jeho konec
+  't' otevreno v textovem rezimu
+  'b' otevreno v binarnim rezimu
+
+  PRIKLADY KOMBINACI
+  "rt" cteni v textovem rezimu
+  "wt" zapis v textovem rezimu
+  "rb" cteni v binarnim rezimu
+  "wb" zapis v binarnim rezimu
    
 */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void RLE_encode(char* in_path, char* out_path) {
+    FILE* file = fopen(in_path, "rb");
+    FILE* result_file = fopen(out_path, "wb");
+
+    if (file == NULL || result_file == NULL) {
+        printf("Error\n");
+        exit(1);
+    }
+
+    int count;
+
+
+
+    fclose(file);
+    fclose(result_file);
+}
+
+void RLE_decode(char* in_path, char *out_path){
+    FILE* file = fopen(in_path, "rb");
+    FILE* result_file = fopen(out_path, "wb");
+
+    if (file == NULL || result_file == NULL) {
+        printf("Error\n");
+        exit(1);
+    }
+
+
+
+
+    fclose(file);
+    fclose(result_file);
+}
+
+void main(){
+
+
+}
+
+
