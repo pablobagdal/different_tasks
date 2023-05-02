@@ -96,7 +96,7 @@ void RLE_decode(char* in_path, char *out_path){
 }
 
 void main(){
-
+    printf("start");
 
 }
 
