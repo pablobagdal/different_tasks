@@ -28,7 +28,7 @@
    Мы можем хранить только пары, для которых x равно максимум 256.
    Поэтому мы модифицируем RLE таким образом, чтобы последовательность символа a, длина которой превышает 256, 
    кодировалась с помощью большего количества пар.
-   Например, последовательность, где x равно 520, кодируется как (a, 256) (a, 256) (a, 8).
+   Например, последовательность, где x равно 520, кодируется как (a, 256) (a, 256) (a, 1).
    
    ЗАДАЧА:
 
@@ -80,24 +80,66 @@ void RLE_encode(char* in_path, char* out_path) {
 }
 
 void RLE_decode(char* in_path, char *out_path){
-    FILE* file = fopen(in_path, "rb");
-    FILE* result_file = fopen(out_path, "wb");
+    char ch;
+    char buffer;
+    int counter = 0;
 
-    if (file == NULL || result_file == NULL) {
+    FILE* input_file = fopen(in_path, "rb");
+    FILE* output_file = fopen(out_path, "wb");
+
+    if (input_file == NULL || output_file == NULL) {
         printf("Error\n");
         exit(1);
     }
 
+    ch = fgetc(input_file);
+    buffer = ch;
+    counter = 0;
+    fprintf(output_file, "%c", ch);
 
+    while (ch != EOF) {
 
+        if(ch != buffer) {
 
-    fclose(file);
-    fclose(result_file);
+            int full_loops = counter / 256;
+            int mod = counter % 256;
+
+            if(full_loops > 0 && mod > 0 || full_loops > 1) {
+                fprintf(output_file, "%c", (char)counter);
+                fprintf(output_file, "%c", ch);
+            }
+
+            //printf("%d", counter);
+            fprintf(output_file, "%c", (char)counter);
+
+            buffer = ch;
+            counter = 1;
+            fprintf(output_file, "%c", ch);
+        } else {
+            counter++;
+        }
+
+        ch = fgetc(input_file);
+    }
+    fprintf(output_file, "%c", (char)counter);
+    //printf("%d", counter);
+
+    fclose(input_file);
+    fclose(output_file);
 }
 
-void main(){
-    printf("start");
+int main(){
 
+    RLE_decode("input.txt", "output.txt");
+
+    // char* text = "hello";
+
+    // char character;
+    // unsigned char number = 111;
+    // printf("value = %u. bytes = %d\n", number, sizeof(number));
+    // printf("text = %s", text);
+
+    return 0;
 }
 
 
