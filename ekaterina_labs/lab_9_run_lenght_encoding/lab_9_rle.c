@@ -62,28 +62,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-void RLE_encode(char* in_path, char* out_path) {
-    FILE* file = fopen(in_path, "rb");
-    FILE* result_file = fopen(out_path, "wb");
+void fprintf_separated_to_binary_file(FILE* fd, char ch, size_t counter) {
+    int celaia_chast = counter / 256;
+    int drobnaia_chast = counter % 256;
 
-    if (file == NULL || result_file == NULL) {
-        printf("Error\n");
-        exit(1);
+    for (size_t i = 0; i < celaia_chast; i++)
+    {
+        fprintf(fd, "%c", ch);
+        fprintf(fd, "%c", 256); 
+    } 
+    if(drobnaia_chast != 0) {
+        fprintf(fd, "%c", ch);
+        fprintf(fd, "%c", (int)counter);    
     }
-
-    int count;
-
-
-
-    fclose(file);
-    fclose(result_file);
 }
 
-void RLE_decode(char* in_path, char *out_path){
-    char ch;
-    char buffer;
-    int counter = 0;
-
+void RLE_encode(char* in_path, char* out_path) {
     FILE* input_file = fopen(in_path, "rb");
     FILE* output_file = fopen(out_path, "wb");
 
@@ -91,53 +85,83 @@ void RLE_decode(char* in_path, char *out_path){
         printf("Error\n");
         exit(1);
     }
+    
+    size_t count;
+    char* text = fgetln(input_file, &count);
+    
+    if(count == 0) {
+        //input is empty
+        fclose(input_file);
+        fclose(output_file);
+        return;
+    }
 
-    ch = fgetc(input_file);
-    buffer = ch;
-    counter = 0;
-    fprintf(output_file, "%c", ch);
+    char* buffer_ptr = &text[0];
+    int counter = 1;
 
-    while (ch != EOF) {
-
-        if(ch != buffer) {
-
-            int full_loops = counter / 256;
-            int mod = counter % 256;
-
-            if(full_loops > 0 && mod > 0 || full_loops > 1) {
-                fprintf(output_file, "%c", (char)counter);
-                fprintf(output_file, "%c", ch);
-            }
-
-            //printf("%d", counter);
-            fprintf(output_file, "%c", (char)counter);
-
-            buffer = ch;
+    
+    for (size_t i = 1; i < count; i++)
+    {
+        if(*buffer_ptr != text[i]) {
+            fprintf_separated_to_binary_file(output_file, *buffer_ptr, counter);
+            
+            buffer_ptr = &text[i];
+            
             counter = 1;
-            fprintf(output_file, "%c", ch);
         } else {
-            counter++;
+            ++counter;
+        }
+    }
+    fprintf_separated_to_binary_file(output_file, *buffer_ptr, counter);
+
+    fclose(input_file);
+    fclose(output_file);
+}
+
+void RLE_decode(char* in_path, char *out_path){
+    FILE* input_file = fopen(in_path, "rb");
+    FILE* output_file = fopen(out_path, "wb");
+
+    if (input_file == NULL || output_file == NULL) {
+        printf("Error\n");
+        exit(1);
+    }
+     
+    size_t count;
+    char* text = fgetln(input_file, &count);
+    
+    if(count == 0) {
+        //input is empty
+        fclose(input_file);
+        fclose(output_file);
+        return;
+    }
+
+    // ++a a++
+
+    for (size_t i = 0; i < count; i+=2)
+    {
+        size_t count = text[i+1];
+        
+        if((int)text[i+1] == 0) {
+            count = 256;
         }
 
-        ch = fgetc(input_file);
+        for (size_t j = 0; j < count; j++)
+        {
+            fprintf(output_file, "%c", text[i]);
+        }
     }
-    fprintf(output_file, "%c", (char)counter);
-    //printf("%d", counter);
-
+    
     fclose(input_file);
     fclose(output_file);
 }
 
 int main(){
 
-    RLE_decode("input.txt", "output.txt");
+    RLE_encode("input.txt", "output.txt");
+    RLE_decode("output.txt", "input3.txt");
 
-    // char* text = "hello";
-
-    // char character;
-    // unsigned char number = 111;
-    // printf("value = %u. bytes = %d\n", number, sizeof(number));
-    // printf("text = %s", text);
 
     return 0;
 }

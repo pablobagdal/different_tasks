@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Реализуйте структуры и следующую функциональность для хэш-таблиц над строками с решением коллизией (Метод цепочек)
+// 1. Реализуйте структуры и следующую функциональность для хэш-таблиц над строками с решением коллизией (Метод цепочек)
 
 // Разработайте все так, чтобы вашу таблицу можно было использовать со следующим API:
 // chaining_table* create_chaining_table(int size, int (*hash)(char*));
@@ -14,7 +14,7 @@
 // и 0 в противном случае (не найдено, не добавлено, не удалено и т.д.). 
 // Выберите хэш-функцию для строк самостоятельно в соответствии с лекциями.
 
-//Реализуйте структуры и следующую функциональность для хэш-таблиц над строками с решением коллизией (Открытая адресация). 
+//2. Реализуйте структуры и следующую функциональность для хэш-таблиц над строками с решением коллизией (Открытая адресация). 
 
 // Разработайте все так, чтобы вашу таблицу можно было использовать со следующим API:
 // oa_table* create_oa_table(int size, int (*hash)(char*), int (*probe)(int, int));
@@ -30,19 +30,28 @@
 // Напишите main с примерами использования реализаций. 
 // Для открытой адресации покажите использование в таблицах с линейной и квадратичной функцией опроса.
 
-typedef struct chaining_table{ // не полная структура - добавить 
-    int size;
-    char* data; 
-    int (*hash)(char*);
+typedef struct node{
+    char* data;
+    struct node* next;
+}node;
+
+typedef struct chaining_table{ 
+    int size; // размер таблицы
+    int (*hash)(char*); // хэш функция
+    struct node** table;
 }chaining_table;
 
-
+int hash_function(char* string){
+    
+}
 
 chaining_table* create_chaining_table(int size, int(*hash)(char*)){
     chaining_table* table = malloc(sizeof(chaining_table));
     if(table == NULL){
         return NULL;
     }
+    table->size;
+    table->hash;
 }
 
 
