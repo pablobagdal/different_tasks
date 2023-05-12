@@ -30,7 +30,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SIZE 256
+#define TABLE_SIZE 256
+
 
 typedef struct node{
     char* data;
@@ -46,15 +47,18 @@ node* create_node(char* data) {
     return new_node;
 }
 
-typedef struct chaining_table{ 
+typedef struct chaining_table chaining_table;
+
+struct chaining_table{ 
     int size; // размер таблицы
     int (*hash)(char*); // хэш функция
     node** table;
-}chaining_table;
+};
 
 int hash_function(char* string){
     // let's say string is always not empty
     int hash = string[0]; // the hash will be: 00000000 00000000 00000000 [this byte with ASCII code]
+    hash %= TABLE_SIZE; 
     return hash;
 }
 
@@ -75,32 +79,36 @@ chaining_table* create_chaining_table(int size, int(*hash)(char*)){
 }
 
 int add_ct(char* data, chaining_table* table){
+    if(contains_ct(data, table)) {
+        // if it's already exists then we won't add it again
+        return 0;
+    }
 
     int hash= table->hash(data);
 
     if(table->table[hash] == NULL) {
         table->table[hash] = create_node(data);
         return 1;
-    } else {
-        node* node_ptr = table->table[hash];
+    }
+
+    node* node_ptr = table->table[hash];
+
+    if(node_ptr->data == data) {
+        // already exists
+        return 0;
+    }
+
+    while(node_ptr->next != NULL) {
+        node_ptr = node_ptr->next;
 
         if(node_ptr->data == data) {
             // already exists
             return 0;
         }
-
-        while(node_ptr->next != NULL) {
-            node_ptr = node_ptr->next;
-
-            if(node_ptr->data == data) {
-                // already exists
-                return 0;
-            }
-        }
-
-        node_ptr->next = create_node(data);
-        return 1;
     }
+
+    node_ptr->next = create_node(data);
+    return 1;
 
     // int position = -1;
 
@@ -140,15 +148,21 @@ int remove_ct(char* data, chaining_table* table){
     return 0;
 }
 int contains_ct(char* data, chaining_table* table){
-    int position = -1;
+    // int position = -1;
+    int index = table->hash(data);
 
-    int hash = table->hash(data);
+    if(table->table[index] == NULL) {
+        return 0;
+    }
 
-    for (size_t i = 0; i < table->size; i++)
-    {
-        if(table->table[i] == hash) {
+    node* node_ptr = table->table[index];
+
+    while(node_ptr != NULL) {
+        if(node_ptr->data == data) {
             return 1;
         }
+
+        node_ptr = node_ptr->next;
     }
 
     return 0;
