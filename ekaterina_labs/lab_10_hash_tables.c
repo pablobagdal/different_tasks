@@ -32,6 +32,53 @@
 
 #define TABLE_SIZE 256
 
+#define SPECIAL_VALUE "SOMETEXT"
+
+// Function to implement `strcpy()` function 
+char* strcpy(char* destination, const char* source)
+{
+    // return if no memory is allocated to the destination
+    if (destination == NULL) {
+        return NULL;
+    }
+ 
+    // take a pointer pointing to the beginning of the destination string
+    char *ptr = destination;
+ 
+    // copy the C-string pointed by source into the array
+    // pointed by destination
+    while (*source != '\0')
+    {
+        *destination = *source;
+        destination++;
+        source++;
+    }
+ 
+    // include the terminating null character
+    *destination = '\0';
+ 
+    // the destination is returned by standard `strcpy()`
+    return ptr;
+}
+
+// Function to implement strcmp function
+int strcmp(const char *X, const char *Y)
+{
+    while (*X)
+    {
+        // if characters differ, or end of the second string is reached
+        if (*X != *Y) {
+            break;
+        }
+ 
+        // move to the next pair of characters
+        X++;
+        Y++;
+    }
+ 
+    // return the ASCII difference after converting `char*` to `unsigned char*`
+    return *(const unsigned char*)X - *(const unsigned char*)Y;
+}
 
 typedef struct node{
     char* data;
@@ -55,11 +102,29 @@ struct chaining_table{
     node** table;
 };
 
-int hash_function(char* string){
-    // let's say string is always not empty
-    int hash = string[0]; // the hash will be: 00000000 00000000 00000000 [this byte with ASCII code]
-    hash %= TABLE_SIZE; 
+int hash_function(char* str){
+    // summarize ASCII of all chars and then mod Table size 
+    int hash = 0;
+
+    int length = sizeof(str);
+    
+    for (size_t i = 0; i < length; i++)
+    {
+        hash += str[i];
+    }
+    
+    hash %= TABLE_SIZE;
+
     return hash;
+}
+
+int probing_function_linear(int hash, int step) {
+    int step = hash + step;
+    return step;
+}
+int probing_function_squared(int hash, int step_base) {
+    int step = hash + step_base*step_base;
+    return step;
 }
 
 chaining_table* create_chaining_table(int size, int(*hash)(char*)){
@@ -74,107 +139,223 @@ chaining_table* create_chaining_table(int size, int(*hash)(char*)){
     table->size = size;
     table->hash = hash;
     table->table = malloc(sizeof(node*)*size);// malloc mem to N pointers of node's
-
+    
+    for (size_t i = 0; i < size; i++)
+    {
+        table->table[i] = NULL;
+    }
+    
     return table;
 }
 
-int add_ct(char* data, chaining_table* table){
-    if(contains_ct(data, table)) {
-        // if it's already exists then we won't add it again
-        return 0;
-    }
-
-    int hash= table->hash(data);
-
-    if(table->table[hash] == NULL) {
-        table->table[hash] = create_node(data);
-        return 1;
-    }
-
-    node* node_ptr = table->table[hash];
-
-    if(node_ptr->data == data) {
-        // already exists
-        return 0;
-    }
-
-    while(node_ptr->next != NULL) {
-        node_ptr = node_ptr->next;
-
-        if(node_ptr->data == data) {
-            // already exists
-            return 0;
-        }
-    }
-
-    node_ptr->next = create_node(data);
-    return 1;
-
-    // int position = -1;
-
-    // for (size_t i = 0; i < table->size; i++)
-    // {
-    //     if(table->table[i] == NULL) {
-    //         position = i;
-    //         break;
-    //     }
-    // }
-    
-    // if(position == -1) {
-    //     // no place in table
-    //     return 0;
-    // }
-
-    // int hash = table->hash(data);
-    // table->table[i] = hash;
-
-    // return 1;
-}
-int remove_ct(char* data, chaining_table* table){
-    int position = -1;
-
-    int hash = table->hash(data);
-
-    for (size_t i = 0; i < table->size; i++)
-    {
-        if(table->table[i] == hash) {
-            // need to free the memory
-            delete[]table[i];
-
-            return 1;
-        }
-    }
-    
-    return 0;
-}
 int contains_ct(char* data, chaining_table* table){
-    // int position = -1;
     int index = table->hash(data);
 
     if(table->table[index] == NULL) {
         return 0;
     }
-
+    
     node* node_ptr = table->table[index];
 
     while(node_ptr != NULL) {
         if(node_ptr->data == data) {
             return 1;
         }
+        // if(strcmp(node_ptr->data, data)) {
+        //     return 1;
+        // }
 
         node_ptr = node_ptr->next;
     }
 
     return 0;
 }
+int add_ct(char* data, chaining_table* table){
+    if(contains_ct(data, table)) {
+        // if it's already exists then we won't add it again
+        return 0;
+    }
+
+    int index = table->hash(data);
+
+    if(table->table[index] == NULL) {
+        table->table[index] = create_node(data);
+        return 1;
+    }
+
+    node* node_ptr = table->table[index];
+
+    while(node_ptr->next != NULL) {
+        node_ptr = node_ptr->next;
+    }
+
+    node_ptr->next = create_node(data);
+    return 1;
+}
+int remove_ct(char* data, chaining_table* table){
+    if(!contains_ct(data, table)) {
+        return 0;
+    }
+
+    int index = table->hash(data);
+
+    node* prev_ptr = table->table[index];
+    node* node_ptr = table->table[index];
+
+    while(node_ptr->data != data) {
+        prev_ptr = node_ptr;
+        node_ptr = node_ptr->next;
+    }
+
+    prev_ptr->next = prev_ptr->next->next;
+
+    // free memory using node_ptr
+    free(node_ptr);
+    // node_ptr = NULL;
+
+    return 1;
+}
+
+typedef struct oa_table oa_table;
+
+struct oa_table {
+    int size; // размер таблицы
+    int (*hash)(char*); // хэш функция
+    int (*probe)(int,int); // хэш функция
+    char** table;
+};
+
+oa_table* create_oa_table(int size, int (*hash)(char*), int (*probe)(int, int)){
+    oa_table* table = malloc(sizeof(oa_table));
+
+    // memory overflow
+    if(table == NULL){
+        return NULL;
+    }
+
+    table->size = size;
+    table->hash = hash;
+    table->probe = probe;
+    table->table = malloc(sizeof(char*)*size);
+
+    for (size_t i = 0; i < size; i++)
+    {
+        table->table[i] = NULL;
+    }
+    
+
+    return table;
+}
+
+int contains_oat(char* data, oa_table* table){
+    int index = table->hash(data);
+
+    if(table->table[index] == NULL) {
+        return 0;
+    }
+
+    while(index < table->size) {
+        if(table->table[index] == NULL) {
+            return 0;
+        }
+        
+        if(data == table->table[index]) {
+            return 1;
+        }
+        // if(strcmp(data, table->table[index])) {
+        //     return 1;
+        // }
+
+        // if(table->table[index] == SPECIAL_VALUE) {
+        //     return 1;
+        // }
+        index = table->probe(index, 0);
+    }
+    // riched end of the array
+    return 0;
+}
+
+int add_oat(char* data, oa_table* table){
+    if(contains_oat(data, table)) {
+        // already exists
+        return 0;
+    }
+
+    int index = table->hash(data);
+
+    // char* ptr = table->table[index];
+
+    while(index < table->size) {
+        if(table->table[index] == NULL) { // what about SPECIAL_VALUE places? Shall we write in there?
+            table->table[index] = data;
+            // strcpy(table->table[index], data);
+            return 1;
+        }
+        index = table->probe(index, table->size);
+    }
+    return 0;
+}
+int remove_oat(char* data, oa_table* table){
+    if(!contains_oat(data, table)) {
+        return 0;
+    }
+
+    int hash = table->hash(data);
+    int step = 0;
+    int index  = hash + step;
+
+    while (table->table[index] != NULL && index < table->size)
+    {
+        if(table->table[index] == data) {
+            table->table[index] = SPECIAL_VALUE;
+            return 1;
+        }
+        // if(strcmp(table->table[index], data)) {
+        //     strcpy(table->table[index], SPECIAL_VALUE);
+        //     return 1;
+        // }
+        ++step;
+        index = table->probe(hash,step);
+    }
+    
+    // btw unreachable place
+    return 0;
+}
 
 int main(int argc, char const *argv[])
 {
-    chaining_table* c_t = create_chaining_table(SIZE, hash_function);
+    
+    // chaining_table* c_t = create_chaining_table(TABLE_SIZE, hash_function);
 
-    add_ct("hello", c_t);
-    remove_ct("hello", c_t);
-    contains_ct("hello", c_t);
+    // add_ct("hello1", c_t);
+    // add_ct("hello2", c_t);
+    // add_ct("hello3", c_t);
+    
+    // remove_ct("hello2", c_t);
+
+    // if(contains_ct("hello2", c_t)) {
+    //     printf("contains\n");
+    // } else {
+    //     printf("doesn't contains\n");
+    // }
+
+
+    oa_table* a_t = create_oa_table(TABLE_SIZE, hash_function, probing_function_linear);
+    // oa_table* a_t = create_oa_table(TABLE_SIZE, hash_function, probing_function_squared);
+
+    add_oat("hello1", a_t);
+    add_oat("hello2", a_t);
+    add_oat("hello3", a_t);
+    
+    remove_oat("hello2", a_t);
+
+    if(contains_oat("hello2", a_t)) {
+        printf("contains\n");
+    } else {
+        printf("doesn't contains\n");
+    }
+
+
     return 0;
 }
 
