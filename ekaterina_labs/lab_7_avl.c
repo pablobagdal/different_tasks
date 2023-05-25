@@ -2,7 +2,6 @@
 #include<string.h>
 #include<stdlib.h>
 
-
 typedef struct Node{
     int data;
     
@@ -65,32 +64,35 @@ struct Node* rotate_right(struct Node* old_root) {
 
 
 void add(struct avl_tree *t, struct Node* added){
-    struct Node* aktualni = t->root;
+    struct Node* current_node = t->root;
+
     if(t->root == NULL){
         t->root = added;
         return;
     }
-    while(aktualni != NULL){
-        if(added->data < aktualni->data){
-            if(aktualni->left == NULL){
-                aktualni->left = added;
-                aktualni->left->parent = aktualni;
+
+    while(current_node != NULL){
+        if(added->data < current_node->data){
+            if(current_node->left == NULL){
+                current_node->left = added;
+                current_node->left->parent = current_node;
                 return;
             }
-            aktualni = aktualni->left;
+            current_node = current_node->left;
         } else 
         {
-            if (aktualni->right == NULL){
-                aktualni->right = added;
-                aktualni->right->parent = aktualni;
+            if (current_node->right == NULL){
+                current_node->right = added;
+                current_node->right->parent = current_node;
                 return;
             }
-            aktualni = aktualni->right;
+            current_node = current_node->right;
         }
     }
 }
 
 void avl_insert(struct avl_tree* t, struct Node* added_node) {
+    // add just as in binary search tree
     add(t, added_node);
 
     added_node->bf = 0;
@@ -144,7 +146,7 @@ void avl_insert(struct avl_tree* t, struct Node* added_node) {
 
 }
 
-void main() {
+int main() {
     avl_tree *tree = malloc(sizeof(avl_tree));
     tree->root = NULL;
 
@@ -159,5 +161,5 @@ void main() {
     }
 
     printf("The end");
-
+    return 0;
 }
