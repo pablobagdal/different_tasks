@@ -45,18 +45,25 @@ void set_right_child(struct Node* p, struct Node* c){
 
 struct Node* rotate_left(struct Node* old_root) {
     struct Node* new_root = old_root->right;
-    struct Node* B = old_root->left;
+    
+    // I guess this was an error
+    //struct Node* B = old_root->left;
 
-    set_right_child(old_root,B);
+    // new way to do this:
+    Node* node_moving_from_one_side_to_another = new_root->left;
+
+    set_right_child(old_root,node_moving_from_one_side_to_another);
     set_left_child(new_root,old_root);
 
     return new_root;
 }
 struct Node* rotate_right(struct Node* old_root) {
     struct Node* new_root = old_root->left;
-    struct Node* B = old_root->right;
+    
+    //struct Node* B = old_root->right;
+    Node* node_moving_from_one_side_to_another = new_root->right;
 
-    set_left_child(old_root,B);
+    set_left_child(old_root,node_moving_from_one_side_to_another);
     set_right_child(new_root,old_root);
 
     return new_root;
@@ -95,6 +102,7 @@ void avl_insert(struct avl_tree* t, struct Node* added_node) {
     // add just as in binary search tree
     add(t, added_node);
 
+    // senseless action 'cause in create_node bf's already 0 but anyway let it be
     added_node->bf = 0;
 
     struct Node*u = added_node->parent;
@@ -110,10 +118,11 @@ void avl_insert(struct avl_tree* t, struct Node* added_node) {
         if(u->bf == 0) {
             // end algorythm
             return;
-        } else if(u->bf == 2 || u->bf == -2) {
-            struct Node*p = u->parent;
-
-            struct Node*w;
+        }
+        
+        if(u->bf == 2 || u->bf == -2) {
+            Node* p = u->parent;
+            Node* w;
             
             if(u->bf == -2) {
                 // справа перевес
@@ -141,7 +150,6 @@ void avl_insert(struct avl_tree* t, struct Node* added_node) {
 
         v = u;
         u = u->parent;
-
     }
 
 }
